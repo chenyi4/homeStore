@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - cameras</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!-- <link type="text/css" rel="stylesheet" href="main.css"> -->
+		<style>
+            body{
+                padding: 0px;
+                margin: 0px;
+                font-size: 0px;
+                background: black;
+            }
+			a {
+				color: #08f;
+			}
+			b {
+				color: lightgreen;
+			}
+		</style>
+	</head>
+	<body>
+        <div id="info"></div>
+    </body>
+    <script type="module">
+
+        import * as THREE from './js/three.module.js';
+
+        import Stats from './js/stats.module.js';
+        import { OBJLoader } from './js/OBJLoader.js';
+
+        var SCREEN_WIDTH = window.innerWidth;
+		var SCREEN_HEIGHT = window.innerHeight;
+		var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+
+        var camera, scene, renderer;
+        var container = document.getElementById('info');
+        var pointLight,particles,mesh;
+
+        init();
+        function init() {
+            sceneInit();
+            cameraInit();
+            // initCube();
+            loadObj();
+            renderInit();
+            animate();
+            addTouchListener();
+        }
+
+        function sceneInit(){
+            scene = new THREE.Scene();
+            var size = 10000;
+            var divisions = 10;
+
+            // var gridHelper = new THREE.GridHelper( size, divisions );
+            // scene.add( gridHelper );
+
+            // var axesHelper2 = new THREE.AxesHelper( 113);
+            // axesHelper2.position.x = 0;
+            // axesHelper2.position.y = 0;
+            // axesHelper2.position.z = 0;
+            // scene.add( axesHelper2 );
+        }
+
+        function initCube(){
+            var ambiLight = new THREE.AmbientLight(0x141414);
+            scene.add(ambiLight);
+            var texturePainting = new THREE.TextureLoader().load( './image/earth.jpg' );
+            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting } );
+
+            mesh = new THREE.Mesh(
+                new THREE.SphereBufferGeometry( 100, 42, 42 ),
+                materialPainting
+                // new THREE.MeshNormalMaterial( { flatShading: true } )
+            );
+            mesh.position.z = 1600;
+            scene.add( mesh );
+        }
+
+        var pivot ,pivot2,pivot3,pivot4,pivot5,pivot6,pivot7,pivot8,pivot9,pivot10;
+        function loadObj(){
+            var loader = new OBJLoader();
+            
+            loader.load( './3d/banana.obj', function ( obj ) {
+                let object = obj;
+                
+                object.scale.set(3,3,3);
+                object.children[0].material.color.set(0xe8b73b);
+             
+
+                var box = new THREE.Box3().setFromObject(object);
+                box.center(object.position);
+                
+                object.position.multiplyScalar(-1);
+                
+                pivot = new THREE.Group();
+                pivot.add(object);
+                pivot.rotation.x = 1.7;
+               
+                pivot2 = pivot.clone();
+                pivot3 = pivot.clone();
+                pivot4 = pivot.clone();
+                pivot5 = pivot.clone();
+                pivot6 = pivot.clone();
+                pivot7 = pivot.clone();
+                pivot8 = pivot.clone();
+                pivot9 = pivot.clone();
+                pivot10 = pivot.clone();
+
+              
+
+                scene.add(pivot);
+                scene.add(pivot2);
+                scene.add(pivot3);
+                scene.add(pivot4);
+                scene.add(pivot5);
+                scene.add(pivot6);
+                scene.add(pivot7);
+                scene.add(pivot8);
+                scene.add(pivot9);
+                scene.add(pivot10);
+                setPosition();
+            });
+
+            var light = new THREE.DirectionalLight(0xffffff);//光源颜色
+            light.position.set(20, 1000, 1305);//光源位置
+            scene.add(light);//光源添加到场景中
+        }
+        var R = 320;
+        function setPosition(){
+            if(!pivot10) return false;
+            pivot2.position.x  = -Math.sin(Math.PI/5)*R;
+            pivot2.position.z = Math.cos(Math.PI/5)*R;
+            pivot2.rotation.z = -Math.PI/10*3;
+
+            pivot3.position.x  = 0;
+            pivot3.position.z = R;
+            pivot3.rotation.z = -Math.PI/2;
+
+            pivot4.position.x  = Math.sin(Math.PI/5)*R;
+            pivot4.position.z = Math.cos(Math.PI/5)*R;
+            pivot4.rotation.z = Math.PI/10*13;
+
+            pivot5.position.x  = Math.sin(Math.PI/10*4)*R;
+            pivot5.position.z = Math.cos(Math.PI/10*4)*R;
+            pivot5.rotation.z = Math.PI/10*11;
+
+            pivot6.position.x  = Math.sin(Math.PI/10*4)*R;
+            pivot6.position.z = -Math.cos(Math.PI/10*4)*R;
+            pivot6.rotation.z = -Math.PI/10*11;
+
+            pivot7.position.x  = Math.sin(Math.PI/5)*R;
+            pivot7.position.z = -Math.cos(Math.PI/5)*R;
+            pivot7.rotation.z = -Math.PI/10*13;
+
+            pivot8.position.x  = 0;
+            pivot8.position.z = -R;
+            pivot8.rotation.z = Math.PI/2;
+
+            pivot9.position.x  = -Math.sin(Math.PI/5)*R;
+            pivot9.position.z = -Math.cos(Math.PI/5)*R;
+            pivot9.rotation.z = Math.PI/10*3;
+
+            pivot10.position.x  = -Math.sin(Math.PI/10*4)*R;
+            pivot10.position.z = -Math.cos(Math.PI/10*4)*R;
+            pivot10.rotation.z = Math.PI/10*1;
+
+            pivot.position.x  = -Math.sin(Math.PI/10*4)*R
+            pivot.position.z = Math.cos(Math.PI/10*4)*R
+            pivot.rotation.z = -Math.PI/10;
+            //
+        }
+
+        function initPoint(){
+            var geometry = new THREE.BufferGeometry();
+            var vertices = [];
+            for ( var i = 0; i < 10000; i ++ ) {
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // x
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // y
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // z
+            }
+            geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+            var particles = new THREE.Points( geometry, new THREE.PointsMaterial( { color: 0x888888 } ) );
+            scene.add( particles );
+        }
+
+        function cameraInit(){
+            camera = new THREE.PerspectiveCamera( 50, SCREEN_WIDTH/SCREEN_HEIGHT, 1, 10000 );
+            camera.position.y = 4412;
+            camera.position.x = 4412;
+            camera.up.x = 0;
+            camera.up.y = 1;
+            camera.up.z = 0;
+            camera.lookAt(0,0,0);
+            scene.add( camera );
+        }
+       
+
+        function renderInit(){
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+            renderer.render( scene, camera );
+            renderer.setClearColor(0x000000);
+            // renderer.clear();
+            container.appendChild( renderer.domElement );
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+            render();
+        }
+        
+        var Rchange = 1200;
+        function render(){
+            if( R < Rchange){
+                R = R + 1;
+                setPosition();
+            }
+            renderer.clear();
+            renderer.render( scene, camera );
+        }
+
+        var startY,endY;
+        var isDown = false;
+        var changeBefore = 0;
+        function addTouchListener() {
+            document.onmousedown = function (event) {
+                startY = event.clientY;
+                isDown = true;
+            };
+            document.onmouseup = function(event){
+                isDown = false;
+            };
+            document.onmousemove = function (event) {
+                if (isDown) {
+                    if(changeBefore != 0){
+                        if(changeBefore > event.clientY){
+                            camera.position.x = camera.position.x + 120;
+                            
+                        }else{
+                            camera.position.x = camera.position.x - 120;
+                        }
+                        camera.lookAt(0,0,0);
+                    }
+                    endY = event.clientY;
+                    changeBefore = endY;
+                }
+            };
+        }
+
+    </script>
+</html>

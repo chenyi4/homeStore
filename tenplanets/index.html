@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - cameras</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!-- <link type="text/css" rel="stylesheet" href="main.css"> -->
+		<style>
+            body{
+                padding: 0px;
+                margin: 0px;
+                font-size: 0px;
+                background: black;
+            }
+			a {
+				color: #08f;
+			}
+			b {
+				color: lightgreen;
+			}
+		</style>
+	</head>
+	<body>
+        <div id="info"></div>
+    </body>
+    <script type="module">
+
+        import * as THREE from './js/three.module.js';
+
+        import Stats from './js/stats.module.js';
+        import { OBJLoader } from './js/OBJLoader.js';
+
+        var SCREEN_WIDTH = window.innerWidth;
+		var SCREEN_HEIGHT = window.innerHeight;
+		var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+
+        var camera, scene, renderer;
+        var container = document.getElementById('info');
+        var pointLight,particles,mesh,group,group1,group2;
+
+        init();
+        function init() {
+            sceneInit();
+            cameraInit();
+            initEarth();
+            initMercury();
+            initHot();
+            initLight();
+            renderInit();
+            animate();
+        }
+
+        function sceneInit(){
+            scene = new THREE.Scene();
+            var size = 10000;
+            var divisions = 10;
+        }
+
+        function initEarth(){
+            group  = new THREE.Group();
+
+            var texturePainting = new THREE.TextureLoader().load( './image/ok/earth.jpg' );
+            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting } );
+            mesh = new THREE.Mesh(
+                new THREE.SphereBufferGeometry( 300, 42, 42 ),
+                materialPainting
+                // new THREE.MeshNormalMaterial( { flatShading: true } )
+            );
+            mesh.position.x = 3200;
+            group.add(mesh);
+            scene.add( group );
+        }
+
+        function initMercury(){
+            group1 = new THREE.Group();
+
+            var texturePainting = new THREE.TextureLoader().load( './image/ok/Mercury.jpg' );
+            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting} );
+            mesh = new THREE.Mesh(
+                new THREE.SphereBufferGeometry( 800, 42, 42 ),
+                materialPainting
+                // new THREE.MeshNormalMaterial( { flatShading: true } )
+            );
+
+            mesh.position.x = 9000;
+            group1.add(mesh);
+            scene.add( group1 );
+        }
+
+        function initHot(){
+            group2 = new THREE.Group();
+
+            var texturePainting = new THREE.TextureLoader().load( './image/ok/hot.jpg' );
+            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting} );
+            var mesh = new THREE.Mesh(
+                new THREE.SphereBufferGeometry( 400, 42, 42 ),
+                materialPainting
+                // new THREE.MeshNormalMaterial( { flatShading: true } )
+            );
+
+            mesh.position.x = 7600;
+            group2.add(mesh);
+            scene.add( group2);
+        }
+
+        var cube;
+        function initLight(){
+            var sphereGeometry = new THREE.SphereGeometry(1200, 20, 20);
+            var sphereMaterial =  new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending });
+            new THREE.MeshBasicMaterial( {color: 0xffaa00} );
+           
+            var lightMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+            var pointLight=new THREE.PointLight(0xffffff, 1, 10);
+            pointLight.position.set(20,20,20);
+            pointLight.add(lightMesh);
+            scene.add(pointLight);
+        }
+       
+       
+        function initPoint(){
+            var geometry = new THREE.BufferGeometry();
+            var vertices = [];
+            for ( var i = 0; i < 10000; i ++ ) {
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // x
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // y
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // z
+            }
+            geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+            var particles = new THREE.Points( geometry, new THREE.PointsMaterial( { color: 0x888888 } ) );
+            scene.add( particles );
+        }
+
+        function cameraInit(){
+            camera = new THREE.PerspectiveCamera( 50, SCREEN_WIDTH/SCREEN_HEIGHT, 1, 100000 );
+            camera.position.z = 15002;
+            camera.lookAt(0,0,0);
+            scene.add( camera );
+        }
+       
+
+        function renderInit(){
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+            renderer.render( scene, camera );
+            renderer.setClearColor(0x000000);
+            // renderer.clear();
+            container.appendChild( renderer.domElement );
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+            render();
+        }
+        
+        function render(){
+            if(group){
+                group.rotation.y = group.rotation.y + 0.003; 
+                group1.rotation.y = group1.rotation.y + 0.005;
+                group2.rotation.y = group2.rotation.y + 0.001;
+            }
+            renderer.clear();
+            renderer.render( scene, camera );
+        }
+
+     
+
+    </script>
+</html>

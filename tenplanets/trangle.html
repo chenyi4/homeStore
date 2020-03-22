@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - cameras</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!-- <link type="text/css" rel="stylesheet" href="main.css"> -->
+		<style>
+            body{
+                padding: 0px;
+                margin: 0px;
+                font-size: 0px;
+                background: black;
+            }
+			a {
+				color: #08f;
+			}
+			b {
+				color: lightgreen;
+			}
+		</style>
+	</head>
+	<body>
+        <div id="info"></div>
+    </body>
+    <script type="module">
+
+        import * as THREE from './js/three.module.js';
+        import Stats from './js/stats.module.js';
+
+        var SCREEN_WIDTH = window.innerWidth;
+		var SCREEN_HEIGHT = window.innerHeight;
+		var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+
+        var camera, scene, renderer, geometry;
+        var container = document.getElementById('info');
+        var pointLight,particles,mesh;
+
+        init();
+        function init() {
+            sceneInit();
+            cameraInit();
+            initLine();
+            renderInit();
+            animate();
+        }
+
+        function sceneInit(){
+            scene = new THREE.Scene();
+        }
+
+        function initLine(){
+            geometry = new THREE.Geometry();
+            var material = new THREE.LineBasicMaterial({vertexColors:true});
+            var p1 = new THREE.Vector3(5,0,0);
+            var p2 = new THREE.Vector3(10,Math.sqrt(75),0);
+            var p3 = new THREE.Vector3(5,2*Math.sqrt(75),0);
+            var p4 = new THREE.Vector3(-5,2*Math.sqrt(75),0);
+            var p5 = new THREE.Vector3(-10,Math.sqrt(75),0);
+            var p6 = new THREE.Vector3(-5,0,0);
+            var color1 = new THREE.Color(0x3385ff);
+            geometry.vertices.push(p1,p2,p2,p3,p3,p4,p4,p5,p5,p6,p6,p6,p1,p6);
+            // geometry.colors.push(color1,color1,color1,color1,color1,color1,color1,color1,color1,color1,color1,color1,color1,color1,color1);
+            
+            var material = new THREE.LineBasicMaterial( {
+                    color: 0x3385ff,
+                    linewidth: 1,
+                });
+            var triangle = new THREE.LineSegments(geometry,material,THREE.LinePieces);
+            triangle.position.z = 2390;
+            scene.add(triangle);
+        }
+        
+
+        function cameraInit(){
+            camera = new THREE.PerspectiveCamera( 50, SCREEN_WIDTH/SCREEN_HEIGHT, 1, 10000 );
+            camera.position.z = 2500;
+            scene.add( camera );
+        }
+
+        function renderInit(){
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+            renderer.render( scene, camera );
+            renderer.setClearColor(0x000000);
+            // renderer.clear();
+            container.appendChild( renderer.domElement );
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+            render();
+        }
+        
+        function render(){
+            renderer.clear();
+            renderer.render( scene, camera );
+        }
+
+    </script>
+</html>

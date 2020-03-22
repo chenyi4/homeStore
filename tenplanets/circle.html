@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - cameras</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!-- <link type="text/css" rel="stylesheet" href="main.css"> -->
+		<style>
+            body{
+                padding: 0px;
+                margin: 0px;
+                font-size: 0px;
+                background: black;
+            }
+			a {
+				color: #08f;
+			}
+			b {
+				color: lightgreen;
+			}
+		</style>
+	</head>
+	<body>
+        <div id="info"></div>
+    </body>
+    <script type="module">
+
+        import * as THREE from './js/three.module.js';
+
+        import Stats from './js/stats.module.js';
+        import { OBJLoader } from './js/OBJLoader.js';
+
+        var SCREEN_WIDTH = window.innerWidth;
+		var SCREEN_HEIGHT = window.innerHeight;
+		var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+
+        var camera, scene, renderer;
+        var container = document.getElementById('info');
+        var pointLight,particles,mesh, pivot;
+
+        init();
+        function init() {
+            sceneInit();
+            cameraInit();
+            guideHelper();
+            loadObj();
+            renderInit();
+            animate();
+        }
+
+        function sceneInit(){
+            scene = new THREE.Scene();
+        }
+
+        function initCube(){
+            var ambiLight = new THREE.AmbientLight(0x141414);
+            scene.add(ambiLight);
+
+            var texturePainting = new THREE.TextureLoader().load( './image/earth.jpg' );
+            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting } );
+
+            mesh = new THREE.Mesh(
+                new THREE.SphereBufferGeometry( 100, 42, 42 ),
+                materialPainting
+                // new THREE.MeshNormalMaterial( { flatShading: true } )
+            );
+            mesh.position.z = 1600;
+           
+            scene.add( mesh );
+        }
+        
+        function guideHelper(){
+            var size = 10000;
+            var divisions = 10;
+
+            var gridHelper = new THREE.GridHelper( size, divisions );
+            scene.add( gridHelper );
+
+            var axesHelper = new THREE.AxesHelper();
+            scene.add( axesHelper );
+        }
+
+        function loadObj(){
+            var loader = new OBJLoader();
+
+            loader.load( './3d/banana.obj', function ( obj ) {
+                let object = obj;
+                
+                object.scale.set(3,3,3);
+                object.children[0].material.color.set(0xe8b73b);
+                object.rotation.x = 1.6;
+                
+               
+
+                var axesHelper2 = new THREE.AxesHelper( 113);
+                axesHelper2.position.copy(object.position);
+                scene.add( axesHelper2 );
+
+                var boxHelper = new THREE.BoxHelper( object, 0xffff00 );
+                scene.add( boxHelper );
+
+                pivot = new THREE.Group();
+                scene.add(pivot);
+                pivot.add(object);
+                scene.add(pivot);
+
+                var box = new THREE.Box3().setFromObject(object);
+                box.center(object.position);
+                object.position.multiplyScalar(-1);
+            });
+
+            var light = new THREE.DirectionalLight(0xffffff);//光源颜色
+            light.position.set(20, 10, 1305);//光源位置
+            scene.add(light);//光源添加到场景中
+        }
+
+        function initPoint(){
+            var geometry = new THREE.BufferGeometry();
+            var vertices = [];
+            for ( var i = 0; i < 10000; i ++ ) {
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // x
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // y
+                vertices.push( THREE.MathUtils.randFloatSpread( 2000 ) ); // z
+            }
+            geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+            var particles = new THREE.Points( geometry, new THREE.PointsMaterial( { color: 0x888888 } ) );
+            scene.add( particles );
+        }
+
+        function cameraInit(){
+            camera = new THREE.PerspectiveCamera( 50, SCREEN_WIDTH/SCREEN_HEIGHT, 1, 10000 );
+            camera.position.z = 2200;
+            camera.position.y = 120;
+            scene.add( camera );
+        }
+       
+
+        function renderInit(){
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+            renderer.render( scene, camera );
+            renderer.setClearColor(0x000000);
+            // renderer.clear();
+            container.appendChild( renderer.domElement );
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+            render();
+        }
+        
+        function render(){
+            if(pivot){
+                pivot.rotation.y = pivot.rotation.y + 0.01;
+            }
+            renderer.clear();
+            renderer.render( scene, camera );
+        }
+
+    </script>
+</html>
