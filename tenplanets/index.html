@@ -37,6 +37,11 @@
         var camera, scene, renderer;
         var container = document.getElementById('info');
         var pointLight,particles,mesh,group,group1,group2;
+        var raycaster;
+        var mouse = new THREE.Vector2(),INTERSECTED;
+        var groups = new THREE.Group();
+        var isStop = false;
+        var allOver = false;
 
         init();
         function init() {
@@ -46,36 +51,55 @@
             initMercury();
             initHot();
             initLight();
+            initLight2();
             renderInit();
             animate();
         }
 
+        function onDocumentMouseMove( event ) {
+            event.preventDefault();
+            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        }
+        function onDocumentMouseDown(){
+            allOver = !allOver;
+            OneUp();
+        }
+
+        function initLight2(){
+            var light = new THREE.AmbientLight( 0xffffff );
+            scene.add( light );
+        }
         function sceneInit(){
             scene = new THREE.Scene();
             var size = 10000;
             var divisions = 10;
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            document.addEventListener('mousedown', onDocumentMouseDown, false);
+            raycaster = new THREE.Raycaster();
         }
 
         function initEarth(){
             group  = new THREE.Group();
 
             var texturePainting = new THREE.TextureLoader().load( './image/ok/earth.jpg' );
-            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting } );
+            var materialPainting = new THREE.MeshLambertMaterial( { color: 0xffffff, map: texturePainting } );
             mesh = new THREE.Mesh(
                 new THREE.SphereBufferGeometry( 300, 42, 42 ),
                 materialPainting
                 // new THREE.MeshNormalMaterial( { flatShading: true } )
             );
+            mesh.name = 'earth';
             mesh.position.x = 3200;
             group.add(mesh);
-            scene.add( group );
+            groups.add(group);
         }
 
         function initMercury(){
             group1 = new THREE.Group();
 
             var texturePainting = new THREE.TextureLoader().load( './image/ok/Mercury.jpg' );
-            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting} );
+            var materialPainting = new THREE.MeshLambertMaterial( { color: 0xffffff, map: texturePainting} );
             mesh = new THREE.Mesh(
                 new THREE.SphereBufferGeometry( 800, 42, 42 ),
                 materialPainting
@@ -83,24 +107,25 @@
             );
 
             mesh.position.x = 9000;
+            mesh.name = 'Mercury';
             group1.add(mesh);
-            scene.add( group1 );
+            groups.add(group1);
         }
 
         function initHot(){
             group2 = new THREE.Group();
 
             var texturePainting = new THREE.TextureLoader().load( './image/ok/hot.jpg' );
-            var materialPainting = new THREE.MeshBasicMaterial( { color: 0xffffff, map: texturePainting} );
+            var materialPainting = new THREE.MeshLambertMaterial( { color: 0xffffff, map: texturePainting} );
             var mesh = new THREE.Mesh(
                 new THREE.SphereBufferGeometry( 400, 42, 42 ),
                 materialPainting
                 // new THREE.MeshNormalMaterial( { flatShading: true } )
             );
-
             mesh.position.x = 7600;
+            mesh.name = 'hot';
             group2.add(mesh);
-            scene.add( group2);
+            groups.add(group2);
         }
 
         var cube;
@@ -111,10 +136,12 @@
            
             var lightMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
+            lightMesh.name = 'sun';
             var pointLight=new THREE.PointLight(0xffffff, 1, 10);
             pointLight.position.set(20,20,20);
             pointLight.add(lightMesh);
-            scene.add(pointLight);
+            groups.add(pointLight);
+            
         }
        
        
@@ -135,11 +162,12 @@
             camera = new THREE.PerspectiveCamera( 50, SCREEN_WIDTH/SCREEN_HEIGHT, 1, 100000 );
             camera.position.z = 15002;
             camera.lookAt(0,0,0);
-            scene.add( camera );
         }
-       
+
+        
 
         function renderInit(){
+            scene.add(groups);
             renderer = new THREE.WebGLRenderer( { antialias: true } );
             renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
             renderer.render( scene, camera );
@@ -148,17 +176,61 @@
             container.appendChild( renderer.domElement );
         }
 
+        function raycasterSet(){
+            raycaster.setFromCamera( mouse, camera );
+            var intersects = raycaster.intersectObject( groups, true);
+            if ( intersects.length > 0 ) {
+                if ( INTERSECTED != intersects[ 0 ].object ) {
+                    if ( INTERSECTED ) 
+                    console.log('执行了');
+                    isStop = true;
+                    
+                    // INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                    INTERSECTED = intersects[ 0 ].object;
+                    console.log(INTERSECTED.name);
+                    // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+                    // INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+                }
+
+            } else {
+                if ( INTERSECTED ) 
+                isStop = false;
+                // INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+                // isStop = false;
+                INTERSECTED = null;
+
+            }
+        }
+
         function animate() {
             requestAnimationFrame( animate );
             render();
         }
         
+        function OneUp(){
+            groups.position.z = groups.position.z - 1;
+        }
+
         function render(){
-            if(group){
-                group.rotation.y = group.rotation.y + 0.003; 
-                group1.rotation.y = group1.rotation.y + 0.005;
-                group2.rotation.y = group2.rotation.y + 0.001;
+            if(!isStop && !allOver){
+                if(group){
+                    group.rotation.y = group.rotation.y + 0.003; 
+                    group1.rotation.y = group1.rotation.y + 0.005;
+                    group2.rotation.y = group2.rotation.y + 0.001;
+                }
             }
+            if(allOver && groups.position.z >-1220 && INTERSECTED){
+                OneUp();
+                INTERSECTED.scale.x = 4;
+                INTERSECTED.scale.y = 4;
+                INTERSECTED.scale.z = 4;
+                INTERSECTED.position.x = 0;
+                INTERSECTED.position.y = 0;
+                INTERSECTED.position.z = 0;
+            }
+
+            raycasterSet();
             renderer.clear();
             renderer.render( scene, camera );
         }
